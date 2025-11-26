@@ -1,29 +1,52 @@
 # Sign Language Recognition Model
 
-This project aims to develop a sign language recognition model capable of identifying alphabet characters (A-Z) and numbers (0-9) from images. The ultimate goal is to integrate this model with a live camera feed for real-time sign language interpretation.
+This project is a sign language recognition system with **hand detection** that can identify alphabet characters (A-Z) and numbers (0-9) from live camera feed. It includes 4 different datasets for comparison and benchmarking.
+
+## Key Features
+
+- **Hand Detection**: Automatic hand detection using OpenCV skin color detection
+- **4 Datasets**: Compare performance across different sign language datasets
+- **Real-time Recognition**: Live camera feed with instant predictions
+- **Centralized Interface**: Easy-to-use menu to test all models
+- **Confidence Scores**: See how confident the model is in its predictions
 
 ## Project Structure
 
-- `datasets.py`: Defines the `BenchmarkDataset` abstract base class and the `DatasetRegistry` for managing multiple datasets.
-- `sign_mnist_dataset.py`: Implements the `SignMnistDataset` by inheriting from `BenchmarkDataset` and registers it with the `DatasetRegistry`.
-- `npy_dataset.py`: Implements the `NpyDataset` by inheriting from `BenchmarkDataset` and registers it with the `DatasetRegistry` for datasets stored in `.npy` format.
-- `README.md`: This file.
-- `trained_models/`: Contains all trained models (`sign_language_model_sign_mnist.h5`, `sign_language_model_digits.h5`, `sign_language_model_ardamavi.h5`).
-- `dataset number 1/`: Contains all code and data for the Sign MNIST dataset.
-    - `archive/`: Contains the raw dataset files (`sign_mnist_train.csv`, `sign_mnist_test.csv`).
-    - `train.py`: Script to train the model for this dataset.
-    - `deploy.py`: Script to deploy the trained model for real-time prediction.
-    - `summary.md`: A detailed outline of the model training steps for this dataset.
-- `dataset number 2/`: Contains all code and data for the NPY-based sign language digits dataset.
-    - `archive/Sign-language-digits-dataset/`: Contains the raw dataset files (`X.npy`, `Y.npy`).
-    - `train.py`: Script to train the model for this dataset.
-    - `deploy.py`: Script to deploy the trained model for real-time prediction.
-    - `summary.md`: A detailed outline of the model training steps for this dataset.
-- `dataset number 3/`: Contains all code and data for the ArdaMavi sign language digits dataset.
-    - `archive/`: Contains the raw dataset files (`X.npy`, `Y.npy`).
-    - `train.py`: Script to train the model for this dataset.
-    - `deploy.py`: Script to deploy the trained model for real-time prediction.
-    - `summary.md`: A detailed outline of the model training steps for this dataset.
+- `main.py`: **Central interface** - Run this to select and test any dataset model
+- `inference.py`: **Shared inference logic** with hand detection for all models
+- `datasets.py`: Defines the `BenchmarkDataset` abstract base class and the `DatasetRegistry` for managing multiple datasets
+- `sign_mnist_dataset.py`: Implements the `SignMnistDataset` for alphabet recognition
+- `npy_dataset.py`: Implements the `NpyDataset` for digit recognition from .npy files
+- `ardamavi_dataset.py`: Implements the `ArdaMaviDataset` for digit recognition
+- `indian_sign_language_dataset.py`: Implements the `IndianSignLanguageDataset` for alphabet recognition
+- `requirements.txt`: All Python dependencies
+- `README.md`: This file
+- `trained_models/`: Contains all trained models
+    - `sign_language_model_sign_mnist.h5` (Dataset 1)
+    - `sign_language_model_digits.h5` (Dataset 2)
+    - `sign_language_model_ardamavi.h5` (Dataset 3)
+    - `sign_language_model_indian.h5` (Dataset 4)
+- `dataset number 1/`: Sign MNIST dataset (Alphabet A-Z)
+    - `archive/`: Contains the raw dataset files (`sign_mnist_train.csv`, `sign_mnist_test.csv`)
+    - `train.py`: Script to train the model for this dataset
+    - `deploy.py`: Script to deploy the trained model for real-time prediction
+    - `summary.md`: Detailed outline of the model training steps
+- `dataset number 2/`: NPY-based sign language digits dataset (0-9)
+    - `archive/Sign-language-digits-dataset/`: Contains the raw dataset files (`X.npy`, `Y.npy`)
+    - `train.py`: Script to train the model for this dataset
+    - `deploy.py`: Script to deploy the trained model for real-time prediction
+    - `summary.md`: Detailed outline of the model training steps
+- `dataset number 3/`: ArdaMavi sign language digits dataset (0-9)
+    - `archive/`: Contains the raw dataset files (`X.npy`, `Y.npy`)
+    - `train.py`: Script to train the model for this dataset
+    - `deploy.py`: Script to deploy the trained model for real-time prediction
+    - `summary.md`: Detailed outline of the model training steps
+- `dataset number 4/`: Indian Sign Language dataset (Alphabet, 23 classes)
+    - `archive/ISL_Dataset/`: Contains subdirectories for each letter class with images
+    - `train.py`: Script to train the model for this dataset
+    - `deploy.py`: Script to deploy the trained model for real-time prediction
+    - `summary.md`: Detailed outline of the model training steps
+
 
 ## Dataset Management
 
@@ -31,9 +54,10 @@ This project uses a `DatasetRegistry` to manage various `BenchmarkDataset` imple
 
 ### Current Datasets
 
-- **SignMnistDataset**: This dataset is based on the Sign MNIST dataset, containing grayscale images of hand gestures representing alphabet characters (A-Z, excluding J and Z due to motion). Its code and data are located in `dataset number 1/`.
-- **NpyDataset**: This dataset is designed for sign language digits, loading data from `.npy` files. Its code and data are located in `dataset number 2/`.
-- **ArdaMaviDataset**: This dataset is also for sign language digits (0-9), sourced from ArdaMavi. Its code and data are located in `dataset number 3/`.
+1. **SignMnistDataset** (Dataset 1): Alphabet A-Z (24 classes, excluding J and Z). Located in `dataset number 1/`.
+2. **NpyDataset** (Dataset 2): Digits 0-9. Located in `dataset number 2/`.
+3. **ArdaMaviDataset** (Dataset 3): Digits 0-9 from ArdaMavi. Located in `dataset number 3/`.
+4. **IndianSignLanguageDataset** (Dataset 4): Alphabet (23 classes) from Indian Sign Language. Located in `dataset number 4/`.
 
 ### Adding New Datasets
 
@@ -77,75 +101,49 @@ To get started with this project, follow the steps below.
 
 ## Usage
 
-### Training the Model
+### Quick Start (Recommended)
 
-To train the model for a specific dataset (e.g., Sign MNIST):
-1.  Navigate to the dataset's directory:
-    ```bash
-    cd "dataset number 1"
-    ```
-2.  Run the training script:
-    ```bash
-    python3 train.py
-    ```
-    ```
-    This will train the model and save it to `trained_models/sign_language_model_sign_mnist.h5`.
-
-To train the model for the NPY-based digits dataset:
-1.  Navigate to the dataset's directory:
-    ```bash
-    cd "dataset number 2"
-    ```
-2.  Run the training script:
-    ```bash
-    python3 train.py
-    ```
-    ```
-    This will train the model and save it to `trained_models/sign_language_model_digits.h5`.
-
-### Real-time Prediction
-
-To use a trained model for real-time predictions with your camera (e.g., for Sign MNIST):
-1.  Navigate to the dataset's directory:
-    ```bash
-    cd "dataset number 1"
-    ```
-2.  Run the deployment script:
-    ```bash
-    python3 deploy.py
-    ```
-    A window will open displaying your camera feed with real-time predictions. Press 'q' to quit.
-
-To use a trained model for real-time predictions with your camera (e.g., for NPY-based digits):
-1.  Navigate to the dataset's directory:
-    ```bash
-    cd "dataset number 2"
-    ```
-2.  Run the deployment script:
-    ```bash
-    python3 deploy.py
-    ```
-    A window will open displaying your camera feed with real-time predictions. Press 'q' to quit.
-
-    A window will open displaying your camera feed with real-time predictions. Press 'q' to quit.
-
-To use a trained model for real-time predictions with your camera (e.g., for ArdaMavi digits):
-1.  Navigate to the dataset's directory:
-    ```bash
-    cd "dataset number 3"
-    ```
-2.  Run the deployment script:
-    ```bash
-    python3 deploy.py
-    ```
-    A window will open displaying your camera feed with real-time predictions. Press 'q' to quit.
-
-### Main Interface
-
-You can also use the centralized interface to select any model:
+Run the central interface to test any model:
 ```bash
 python3 main.py
 ```
+
+Select a dataset (1-4) from the menu and the system will:
+- Load the trained model
+- Initialize your camera
+- **Detect your hand** using skin color detection
+- Show real-time predictions with confidence scores
+- Display a green bounding box around your hand
+
+Press 'q' to quit the camera view.
+
+### Hand Detection Tips
+
+For best results:
+- Ensure good lighting
+- Use a plain background (not skin-colored)
+- Keep your hand centered in the frame
+- Wear long sleeves to reduce false detections
+- Make clear, distinct gestures
+
+### Training a Model
+
+To train a model for a specific dataset:
+```bash
+cd "dataset number X"  # Replace X with 1, 2, 3, or 4
+python3 train.py
+```
+
+The trained model will be saved to `../trained_models/`.
+
+### Individual Dataset Testing
+
+To run inference for a specific dataset without the menu:
+```bash
+cd "dataset number X"
+python3 deploy.py
+```
+
 
 ## Training Steps (High-Level)
 
