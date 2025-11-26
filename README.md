@@ -20,6 +20,12 @@ This project aims to develop a sign language recognition model capable of identi
     - `deploy.py`: Script to deploy the trained model for real-time prediction.
     - `summary.md`: A detailed outline of the model training steps for this dataset.
     - `trained_models/`: Stores trained models specific to this dataset (e.g., `sign_language_model_digits.h5`).
+- `dataset number 3/`: Contains all code and data for the ArdaMavi sign language digits dataset.
+    - `archive/`: Contains the raw dataset files (`X.npy`, `Y.npy`).
+    - `train.py`: Script to train the model for this dataset.
+    - `deploy.py`: Script to deploy the trained model for real-time prediction.
+    - `summary.md`: A detailed outline of the model training steps for this dataset.
+    - `trained_models/`: Stores trained models specific to this dataset (e.g., `sign_language_model_ardamavi.h5`).
 
 ## Dataset Management
 
@@ -29,6 +35,7 @@ This project uses a `DatasetRegistry` to manage various `BenchmarkDataset` imple
 
 - **SignMnistDataset**: This dataset is based on the Sign MNIST dataset, containing grayscale images of hand gestures representing alphabet characters (A-Z, excluding J and Z due to motion). Its code and data are located in `dataset number 1/`.
 - **NpyDataset**: This dataset is designed for sign language digits, loading data from `.npy` files. Its code and data are located in `dataset number 2/`.
+- **ArdaMaviDataset**: This dataset is also for sign language digits (0-9), sourced from ArdaMavi. Its code and data are located in `dataset number 3/`.
 
 ### Adding New Datasets
 
@@ -119,6 +126,26 @@ To use a trained model for real-time predictions with your camera (e.g., for NPY
     python3 deploy.py
     ```
     A window will open displaying your camera feed with real-time predictions. Press 'q' to quit.
+
+    A window will open displaying your camera feed with real-time predictions. Press 'q' to quit.
+
+To use a trained model for real-time predictions with your camera (e.g., for ArdaMavi digits):
+1.  Navigate to the dataset's directory:
+    ```bash
+    cd "dataset number 3"
+    ```
+2.  Run the deployment script:
+    ```bash
+    python3 deploy.py
+    ```
+    A window will open displaying your camera feed with real-time predictions. Press 'q' to quit.
+
+### Main Interface
+
+You can also use the centralized interface to select any model:
+```bash
+python3 main.py
+```
 
 ## Training Steps (High-Level)
 

@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+
+# Datasets and Models (Large files)
+# Exclude archive folders but keep the folder structure if needed (usually we ignore content)
+# However, user wants to see the folders. We should ignore the large files inside.
+**/archive/*.csv
+**/archive/*.npy
+**/trained_models/*.h5
+
+# OS generated files
+.DS_Store
+Thumbs.db
