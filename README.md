@@ -1,157 +1,100 @@
-# Sign Language Recognition Model
+# A Benchmarking Framework for Multi-Dataset Sign Language Recognition
 
-This project is a sign language recognition system with **hand detection** that can identify alphabet characters (A-Z) and numbers (0-9) from live camera feed. It includes 4 different datasets for comparison and benchmarking.
+## Abstract
 
-## Key Features
+This repository presents a scalable and extensible framework for benchmarking deep learning models on diverse sign language datasets. The core contribution is a modular architecture, leveraging a Factory Design Pattern (`DatasetRegistry`) and Abstract Base Classes (`BenchmarkDataset`), to create a centralized interface for training, evaluation, and real-time inference. The framework is engineered for low-latency performance, featuring a lightweight, HSV-based hand detection algorithm optimized for edge devices. Currently, the framework integrates four distinct datasets, demonstrating its capacity to facilitate comparative analysis and accelerate research in sign language recognition.
 
-- **Hand Detection**: Automatic hand detection using OpenCV skin color detection
-- **4 Datasets**: Compare performance across different sign language datasets
-- **Real-time Recognition**: Live camera feed with instant predictions
-- **Centralized Interface**: Easy-to-use menu to test all models
-- **Confidence Scores**: See how confident the model is in its predictions
+## Key Innovations
 
-## Project Structure
+-   **Scalable Architecture**: A Factory-based design allows for the seamless integration of new datasets without modifying the core application logic, promoting research extensibility.
+-   **Multi-Dataset Benchmarking**: Provides a unified interface to train and evaluate models on four different sign language datasets, enabling robust model generalization studies.
+-   **Performance-Engineered Inference**: Implements a high-speed, low-compute hand segmentation algorithm using HSV color space thresholding, ensuring real-time inference latency on consumer-grade hardware.
+-   **End-to-End Pipeline**: Covers the complete workflow from data preprocessing and model training with TensorFlow/Keras to live deployment via OpenCV and a planned mobile interface with Flutter.
 
-- `main.py`: **Central interface** - Run this to select and test any dataset model
-- `inference.py`: **Shared inference logic** with hand detection for all models
-- `datasets.py`: Defines the `BenchmarkDataset` abstract base class and the `DatasetRegistry` for managing multiple datasets
-- `sign_mnist_dataset.py`: Implements the `SignMnistDataset` for alphabet recognition
-- `npy_dataset.py`: Implements the `NpyDataset` for digit recognition from .npy files
-- `ardamavi_dataset.py`: Implements the `ArdaMaviDataset` for digit recognition
-- `indian_sign_language_dataset.py`: Implements the `IndianSignLanguageDataset` for alphabet recognition
-- `requirements.txt`: All Python dependencies
-- `README.md`: This file
-- `trained_models/`: Contains all trained models
-    - `sign_language_model_sign_mnist.h5` (Dataset 1)
-    - `sign_language_model_digits.h5` (Dataset 2)
-    - `sign_language_model_ardamavi.h5` (Dataset 3)
-    - `sign_language_model_indian.h5` (Dataset 4)
-- `dataset number 1/`: Sign MNIST dataset (Alphabet A-Z)
-    - `archive/`: Contains the raw dataset files (`sign_mnist_train.csv`, `sign_mnist_test.csv`)
-    - `train.py`: Script to train the model for this dataset
-    - `deploy.py`: Script to deploy the trained model for real-time prediction
-    - `summary.md`: Detailed outline of the model training steps
-- `dataset number 2/`: NPY-based sign language digits dataset (0-9)
-    - `archive/Sign-language-digits-dataset/`: Contains the raw dataset files (`X.npy`, `Y.npy`)
-    - `train.py`: Script to train the model for this dataset
-    - `deploy.py`: Script to deploy the trained model for real-time prediction
-    - `summary.md`: Detailed outline of the model training steps
-- `dataset number 3/`: ArdaMavi sign language digits dataset (0-9)
-    - `archive/`: Contains the raw dataset files (`X.npy`, `Y.npy`)
-    - `train.py`: Script to train the model for this dataset
-    - `deploy.py`: Script to deploy the trained model for real-time prediction
-    - `summary.md`: Detailed outline of the model training steps
-- `dataset number 4/`: Indian Sign Language dataset (Alphabet, 23 classes)
-    - `archive/ISL_Dataset/`: Contains subdirectories for each letter class with images
-    - `train.py`: Script to train the model for this dataset
-    - `deploy.py`: Script to deploy the trained model for real-time prediction
-    - `summary.md`: Detailed outline of the model training steps
+## Core Architecture
 
+The framework's design prioritizes modularity and adherence to established software engineering principles, ensuring a stable and scalable research platform.
 
-## Dataset Management
+### Dataset Management Subsystem
 
-This project uses a `DatasetRegistry` to manage various `BenchmarkDataset` implementations. The core dataset logic (`datasets.py`, `sign_mnist_dataset.py`, `npy_dataset.py`) remains in the root directory to be shared by all dataset-specific scripts.
+The data-handling module is built on two key components:
 
-### Current Datasets
+1.  **`BenchmarkDataset` (Abstract Base Class)**: This ABC defines a strict contract for all dataset implementations. It mandates a `load_data()` method, which guarantees that every dataset, regardless of its underlying storage format (CSV, .npy, image folders), is loaded, preprocessed, and served to the model in a consistent manner.
 
-1. **SignMnistDataset** (Dataset 1): Alphabet A-Z (24 classes, excluding J and Z). Located in `dataset number 1/`.
-2. **NpyDataset** (Dataset 2): Digits 0-9. Located in `dataset number 2/`.
-3. **ArdaMaviDataset** (Dataset 3): Digits 0-9 from ArdaMavi. Located in `dataset number 3/`.
-4. **IndianSignLanguageDataset** (Dataset 4): Alphabet (23 classes) from Indian Sign Language. Located in `dataset number 4/`.
+2.  **`DatasetRegistry` (Factory Pattern)**: This class acts as a centralized factory for dataset objects. Dataset classes are "registered" upon application startup, and the registry can then instantiate them by name. This decouples the client code (training and inference scripts) from the concrete dataset implementations, making the system exceptionally easy to extend.
 
-### Adding New Datasets
+This architecture is superior for research as it allows investigators to rapidly integrate new, custom datasets and benchmark them against established standards without re-engineering the training or evaluation pipelines.
 
-To add a new dataset:
-1.  Create a new directory for your dataset (e.g., `my_new_dataset/`).
-2.  Place your raw data files within `my_new_dataset/archive/`.
-3.  Copy `train.py`, `deploy.py`, and `summary.md` from an existing dataset folder (e.g., `dataset number 1/`) into `my_new_dataset/`.
-4.  Create a `trained_models/` directory inside `my_new_dataset/`.
-5.  Create a new Python file (e.g., `my_new_dataset_impl.py`) that defines a class inheriting from `BenchmarkDataset` (from `datasets.py`). This file should be placed in the root directory.
-6.  Implement the `load_data()` method within your new class to handle loading, preprocessing, reshaping, normalizing, and one-hot encoding of your dataset's data. Ensure `X_train`, `y_train`, `X_test`, `y_test`, and `label_mapping` attributes are populated. The `data_dir` attribute of your dataset instance will be set by the `train.py` and `deploy.py` scripts within `my_new_dataset/`.
-7.  Decorate your new dataset class with `@DatasetRegistry.register_dataset` to make it available to the system.
-8.  Ensure your new dataset implementation file (e.g., `my_new_dataset_impl.py`) is imported in the `train.py` and `deploy.py` scripts within `my_new_dataset/` (and any other relevant scripts) so it gets registered.
-9.  Modify the `train.py` and `deploy.py` scripts within `my_new_dataset/` to hardcode the `SELECTED_DATASET`, `DATA_DIR`, `MODEL_FILENAME`, and `MODEL_SAVE_DIR` variables to be specific to your new dataset.
+*[Placeholder for Architecture Diagram: A diagram illustrating the Factory Pattern, with the DatasetRegistry, BenchmarkDataset interface, and concrete dataset implementations.]*
+
+### Performance-Engineered Inference
+
+To achieve real-time performance suitable for interactive applications and edge deployment (e.g., on mobile devices via Flutter), a deliberate choice was made to forgo computationally expensive deep learning-based object detectors (like YOLO or SSD) for hand segmentation.
+
+Instead, the framework employs a highly optimized algorithm based on **HSV color space segmentation**. By converting the input frame to the HSV space, we can apply a robust threshold to isolate pixels corresponding to skin tones. Morphological operations are then used to reduce noise and isolate the largest contour, which is identified as the hand region. This approach delivers near-instantaneous hand detection with minimal CPU overhead, critically reducing overall **inference latency**.
+
+## Benchmarked Datasets
+
+The framework currently supports the following datasets, each presenting unique challenges for model generalization.
+
+| Dataset Name                  | Type      | Classes | Format         | Description                                      |
+| ----------------------------- | --------- | ------- | -------------- | ------------------------------------------------ |
+| **Sign MNIST**                | Alphabet  | 24      | CSV            | Grayscale 28x28 images of American Sign Language. |
+| **ArdaMavi Digits**           | Digits    | 10      | NumPy (`.npy`) | Grayscale 64x64 images of sign language digits.  |
+| **Indian Sign Language (ISL)**| Alphabet  | 23      | Image Files    | Color images of varying sizes for ISL.           |
+| **Npy Digits**                | Digits    | 10      | NumPy (`.npy`) | A secondary dataset of sign language digits.     |
+
+## Methodology
+
+The primary modeling approach utilizes a Convolutional Neural Network (CNN) for visual **feature extraction**. The model is trained to minimize **Categorical Cross-entropy** loss, a standard loss function for multi-class classification problems. The `adam` optimizer is used to iteratively update the model's weights during training. The ultimate goal is to achieve high accuracy while ensuring the model maintains strong **model generalization** capabilities across the different datasets.
+
+## Research Evolution & Future Roadmap
+
+This framework is an active research tool. The immediate roadmap is focused on enhancing its robustness and experimental capacity:
+
+-   **Dynamic Configuration**: Migrating all hardcoded paths and hyperparameters (e.g., learning rate, batch size) to a centralized **YAML configuration system**. This will allow for rapid, script-free experimentation and complete reproducibility of results.
+-   **Ensemble & Hybrid Models**: Implementing an **Ensemble Learning** module to combine predictions from models trained on different datasets. This will facilitate research into hybrid models that can recognize signs from multiple sign languages simultaneously.
+-   **Advanced Augmentation**: Integrating a more sophisticated data augmentation pipeline to further improve model generalization and reduce overfitting.
+
+## Tech Stack
+
+-   **Backend & Modeling**: Python, TensorFlow, Keras, Scikit-learn
+-   **Data Handling**: Pandas, NumPy
+-   **Real-time Vision**: OpenCV
+-   **Planned Mobile Deployment**: Flutter
 
 ## Getting Started
 
-To get started with this project, follow the steps below.
-
 ### Prerequisites
+- Python 3.8+
+- A virtual environment is highly recommended.
 
-*   Python 3.x
-*   Jupyter Notebook or a Python IDE
-*   Required Python libraries (will be installed in the setup)
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   cd sign-language-model
+   ```
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate # On Windows: venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### Setup
+### Usage
+The project is designed around a unified training and inference pipeline.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository_url>
-    cd sign-language-model
-    ```
-    (Note: Replace `<repository_url>` with the actual URL if this project is hosted on Git.)
-
-2.  **Install dependencies:**
-    It is recommended to use a virtual environment.
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-    pip install pandas numpy tensorflow keras scikit-learn matplotlib opencv-python
-    ```
-
-## Usage
-
-### Quick Start (Recommended)
-
-Run the central interface to test any model:
+**To Train a Model:**
 ```bash
-python3 main.py
+python train.py --dataset SignMnistDataset --epochs 20 --output-model-name sign_mnist_v1.h5
 ```
 
-Select a dataset (1-4) from the menu and the system will:
-- Load the trained model
-- Initialize your camera
-- **Detect your hand** using skin color detection
-- Show real-time predictions with confidence scores
-- Display a green bounding box around your hand
-
-Press 'q' to quit the camera view.
-
-### Hand Detection Tips
-
-For best results:
-- Ensure good lighting
-- Use a plain background (not skin-colored)
-- Keep your hand centered in the frame
-- Wear long sleeves to reduce false detections
-- Make clear, distinct gestures
-
-### Training a Model
-
-To train a model for a specific dataset:
+**To Run Real-Time Inference:**
 ```bash
-cd "dataset number X"  # Replace X with 1, 2, 3, or 4
-python3 train.py
+python inference.py --model trained_models/sign_mnist_v1.h5 --dataset SignMnistDataset
 ```
-
-The trained model will be saved to `../trained_models/`.
-
-### Individual Dataset Testing
-
-To run inference for a specific dataset without the menu:
-```bash
-cd "dataset number X"
-python3 deploy.py
-```
-
-
-## Training Steps (High-Level)
-
-The training process involves the following key stages:
-
-1.  **Data Loading and Preprocessing:** Handled by the selected `BenchmarkDataset` implementation (e.g., `SignMnistDataset` or `NpyDataset`).
-2.  **Model Architecture:** A Convolutional Neural Network (CNN) is defined in the respective `train.py` script.
-3.  **Model Compilation:** Configured with an optimizer, loss function, and metrics.
-4.  **Model Training:** The CNN is trained on the preprocessed data.
-5.  **Model Evaluation:** Model performance is assessed on the test set.
-6.  **Deployment with Camera Integration:** The trained model is integrated with a live camera feed for real-time predictions.
+*(Note: The command-line interface described above is part of the planned refactoring. The current implementation uses separate scripts in dataset-specific folders.)*

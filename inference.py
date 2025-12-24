@@ -1,9 +1,29 @@
+import argparse
 import cv2
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 import os
+import sys
+
+# --- Import all dataset classes to ensure they are registered ---
 from datasets import DatasetRegistry
+from sign_mnist_dataset import SignMnistDataset
+from ardamavi_dataset import ArdaMaviDataset
+from indian_sign_language_dataset import IndianSignLanguageDataset
+from npy_dataset import NpyDataset
+
+def get_dataset_data_dir(dataset_name):
+    """Returns the relative data directory for a given dataset."""
+    dataset_map = {
+        "SignMnistDataset": "dataset number 1/archive",
+        "NpyDataset": "dataset number 2/archive/Sign-language-digits-dataset",
+        "ArdaMaviDataset": "dataset number 3/archive",
+        "IndianSignLanguageDataset": "dataset number 4/archive/ISL_Dataset"
+    }
+    if dataset_name not in dataset_map:
+        raise ValueError(f"Data directory for dataset '{dataset_name}' is not defined.")
+    return dataset_map[dataset_name]
 
 def detect_hand_region(frame):
     """
@@ -44,33 +64,33 @@ def detect_hand_region(frame):
     
     return (x, y, w, h)
 
-def run_realtime_prediction(model_path, dataset_name, data_dir):
+def run_realtime_prediction(model_path, dataset_name):
     """
     Runs real-time prediction using the specified model and dataset.
     Uses OpenCV skin detection to focus on the hand region.
 
     Args:
         model_path (str): Path to the trained .h5 model file.
-        dataset_name (str): Name of the registered dataset class.
-        data_dir (str): Path to the dataset directory (for loading metadata/labels).
+        dataset_name (str): Name of the registered dataset class for label mapping.
     """
 
     # Load the trained model
     print(f"Loading trained model from {model_path}...")
     if not os.path.exists(model_path):
         print(f"Error: Model file not found at {model_path}")
-        return
+        sys.exit(1)
 
     try:
         model = load_model(model_path)
         print("Model loaded.")
     except Exception as e:
         print(f"Error loading model: {e}")
-        return
+        sys.exit(1)
 
     # Get the dataset instance to retrieve label mapping
     print(f"Retrieving label mapping for {dataset_name}...")
     try:
+        data_dir = get_dataset_data_dir(dataset_name)
         dataset_instance = DatasetRegistry.get_dataset(dataset_name)
         dataset_instance.data_dir = data_dir
         dataset_instance.load_data() 
@@ -78,14 +98,14 @@ def run_realtime_prediction(model_path, dataset_name, data_dir):
         print("Label mapping retrieved.")
     except Exception as e:
         print(f"Error loading dataset info: {e}")
-        return
+        sys.exit(1)
 
     # Initialize camera
     print("Initializing camera...")
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Error: Could not open video stream.")
-        return
+        sys.exit(1)
     print("Camera initialized.")
 
     print("Starting real-time prediction. Press 'q' to quit.")
@@ -165,3 +185,17 @@ def run_realtime_prediction(model_path, dataset_name, data_dir):
     cap.release()
     cv2.destroyAllWindows()
     print("Application closed.")
+
+
+if __name__ == '__main__':
+    available_datasets = DatasetRegistry.get_available_datasets()
+
+    parser = argparse.ArgumentParser(description="Real-time inference for the Sign Language Recognition Framework.")
+    parser.add_argument('--model', type=str, required=True,
+                        help="Path to the trained .h5 model file (e.g., 'trained_models/sign_mnist_v1.h5').")
+    parser.add_argument('--dataset', type=str, required=True, choices=available_datasets,
+                        help=f"The name of the dataset the model was trained on, for label mapping. Available: {', '.join(available_datasets)}")
+
+    args = parser.parse_args()
+
+    run_realtime_prediction(args.model, args.dataset)
